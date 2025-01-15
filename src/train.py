@@ -36,7 +36,7 @@ class ProjectAgent:
             pickle.dump(self.regressor, file)
 
     def load(self):
-        loaded_regressor = joblib.load('regressor.joblib.xz')
+        loaded_regressor = joblib.load('regressor1.joblib.xz')
         self.regressor = loaded_regressor
 
 
