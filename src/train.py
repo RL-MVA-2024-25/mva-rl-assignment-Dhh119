@@ -9,6 +9,7 @@ import pickle
 from tqdm import tqdm
 from evaluate import evaluate_HIV, evaluate_HIV_population
 from pathlib import Path
+import joblib
 env = TimeLimit(env=HIVPatient(domain_randomization=False), max_episode_steps=200)  
 # # The time wrapper limits the number of steps in an episode at 200.
 # Now the floor is yours to implement the agent and train it.
@@ -35,8 +36,7 @@ class ProjectAgent:
             pickle.dump(self.regressor, file)
 
     def load(self):
-        with open('regressor.pkl', "rb") as file:
-            loaded_regressor = pickle.load(file)
+        loaded_regressor = joblib.load('regressor.joblib.xz')
         self.regressor = loaded_regressor
 
 
@@ -220,35 +220,3 @@ def Qfit(last_iteration, env=env, use_backup=False):
 # to overcome this issue : replace the function to fit by c(x, u) + max(hat(Q)_n(x', u))
 
 
-file = Path("finished.txt")
-if not file.is_file():
-    file = Path('step.txt')
-    if not file.is_file():
-        with open('step.txt', 'w') as f:
-            f.write('-1')
-    last = False
-    i = 0
-    while not last and i <= 10:
-        file1 = Path(f'regressor_{i}.pkl')
-        print(i, file1.is_file())
-        with open('step.txt', 'r') as f:
-            step = int(f.read())
-        if not file1.is_file() and step == -1:
-            last_iteration = i-1
-            last = True
-        elif not file1.is_file() and step != -1:
-            last_iteration = i-2
-            last = True
-        i += 1
-    print('last iteration :', last_iteration)
-    reg = Qfit(last_iteration, env=env)
-    agent = ProjectAgent(regressor=reg)
-    agent.save('regressor.pkl')
-
-# structure :
-# best_regressor : si existe, tel que score > 5e10
-# best_regressor_i : meilleur score de la i-ème itération
-# regressor_i : regresseur calculé pendant la i-ème itération, au step renseigné dans step.txt
-# best_score : meilleure score sur tous les regresseurs jamais calculés
-# regressor : le dernier regresseur ou best_regressor si existe
-# x_samples_i : les trajectoires de l'itération i
